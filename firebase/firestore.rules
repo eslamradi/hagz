@@ -1,0 +1,75 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    function isBookingOwner(bookingId) {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/bookings/$(bookingId)).data.createdBy == request.auth.uid;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false; // Users can't delete their account directly
+    }
+
+    // Bookings collection
+    match /bookings/{bookingId} {
+      // Anyone can read bookings (for code-based access)
+      allow read: if true;
+      
+      // Any signed-in user can create bookings (they become the owner)
+      allow create: if isSignedIn();
+      
+      // Only the owner can update/delete their booking
+      allow update: if isBookingOwner(bookingId);
+      allow delete: if isBookingOwner(bookingId);
+
+      // Players subcollection
+      match /players/{playerId} {
+        // Anyone can read players
+        allow read: if true;
+        
+        // Anyone can add players (for guest access)
+        allow create: if true;
+        
+        // Signed-in users can update/delete their own entries or guests they added
+        // Booking owner can manage all players
+        allow update: if isBookingOwner(bookingId) || 
+          (isSignedIn() && (
+            resource.data.userId == request.auth.uid || 
+            resource.data.addedBy == request.auth.uid
+          ));
+        allow delete: if isBookingOwner(bookingId) || 
+          (isSignedIn() && (
+            resource.data.userId == request.auth.uid || 
+            resource.data.addedBy == request.auth.uid
+          )) ||
+          // Allow deletion if it's a guest entry (no user associated)
+          (resource.data.addedBy == null && resource.data.userId == null);
+      }
+
+      // Teams subcollection - only booking owner can manage
+      match /teams/{teamId} {
+        allow read: if true;
+        allow write: if isBookingOwner(bookingId);
+      }
+
+      // Matches subcollection - only booking owner can manage
+      match /matches/{matchId} {
+        allow read: if true;
+        allow write: if isBookingOwner(bookingId);
+      }
+    }
+  }
+}
