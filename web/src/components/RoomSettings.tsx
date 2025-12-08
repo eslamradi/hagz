@@ -50,12 +50,12 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 z-50 animate-fade-in">
-      <div className="bg-[var(--color-surface)] rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-[var(--color-surface-light)] shadow-2xl">
-        <div className="p-6 border-b border-[var(--color-surface-light)] flex justify-between items-center sticky top-0 bg-[var(--color-surface)]">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-[var(--color-border)] shadow-2xl">
+        <div className="p-6 border-b border-[var(--color-border)] flex justify-between items-center sticky top-0 bg-white z-10">
           <h2 className="text-xl font-semibold text-[var(--color-text)]">Room Settings</h2>
           <button
             onClick={onClose}
-            className="p-2 text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-light)] rounded-lg transition-all"
+            className="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-secondary)] rounded-lg transition-all"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -67,26 +67,26 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
           {/* Date & Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-2.5">
+              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 Date
               </label>
               <input
                 type="date"
                 value={playDate}
                 onChange={(e) => setPlayDate(e.target.value)}
-                className="w-full px-4 py-3.5 bg-[var(--color-background)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
+                className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-2.5">
+              <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
                 Time
               </label>
               <input
                 type="time"
                 value={playTime}
                 onChange={(e) => setPlayTime(e.target.value)}
-                className="w-full px-4 py-3.5 bg-[var(--color-background)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
+                className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all"
                 required
               />
             </div>
@@ -94,7 +94,7 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-2.5">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
               Description
             </label>
             <input
@@ -102,14 +102,14 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="e.g., Friday Night Football"
-              className="w-full px-4 py-3.5 bg-[var(--color-background)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] placeholder-[var(--color-text-muted)]/60 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
+              className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all"
               required
             />
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-2.5">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">
               Location (Google Maps Link)
             </label>
             <input
@@ -117,18 +117,18 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
               value={locationUrl}
               onChange={(e) => setLocationUrl(e.target.value)}
               placeholder="https://maps.google.com/..."
-              className="w-full px-4 py-3.5 bg-[var(--color-background)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] placeholder-[var(--color-text-muted)]/60 focus:outline-none focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 transition-all"
+              className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] placeholder-[var(--color-text-muted)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all"
             />
           </div>
 
           {/* Capacity Settings */}
-          <div className="p-5 bg-[var(--color-background)] rounded-xl border border-[var(--color-surface-light)]">
+          <div className="p-5 bg-[var(--color-surface-secondary)] rounded-xl border border-[var(--color-border)]">
             <h3 className="text-sm font-semibold text-[var(--color-text)] mb-4 flex items-center gap-2">
               <span>👥</span> Capacity Settings
             </h3>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-2">
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-2">
                   Accepted Players
                 </label>
                 <input
@@ -136,12 +136,12 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
                   value={acceptedCapacity}
                   onChange={(e) => setAcceptedCapacity(parseInt(e.target.value))}
                   min={1}
-                  className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-all text-center font-semibold"
+                  className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all text-center font-semibold"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-2">
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-2">
                   Number of Teams
                 </label>
                 <input
@@ -149,12 +149,12 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
                   value={numTeams}
                   onChange={(e) => setNumTeams(parseInt(e.target.value))}
                   min={2}
-                  className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-all text-center font-semibold"
+                  className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all text-center font-semibold"
                   required
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-[var(--color-text-muted)] mb-2">
+                <label className="block text-xs font-medium text-[var(--color-text-secondary)] mb-2">
                   Players per Team
                 </label>
                 <input
@@ -162,7 +162,7 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
                   value={playersPerTeam}
                   onChange={(e) => setPlayersPerTeam(parseInt(e.target.value))}
                   min={1}
-                  className="w-full px-4 py-3 bg-[var(--color-surface)] border border-[var(--color-surface-light)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-primary)] transition-all text-center font-semibold"
+                  className="w-full px-4 py-3 bg-white border border-[var(--color-border-dark)] rounded-xl text-[var(--color-text)] focus:outline-none focus:border-[var(--color-text)] focus:ring-1 focus:ring-[var(--color-text)] transition-all text-center font-semibold"
                   required
                 />
               </div>
@@ -171,17 +171,17 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
 
           {/* Play Mode */}
           <div>
-            <label className="block text-sm font-medium text-[var(--color-text-muted)] mb-3">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-3">
               Play Mode
             </label>
-            <div className="flex gap-3 p-1.5 bg-[var(--color-background)] rounded-xl">
+            <div className="flex gap-3 p-1 bg-[var(--color-surface-secondary)] rounded-xl">
               <button
                 type="button"
                 onClick={() => setPlayMode('league')}
-                className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-1 inline-flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
                   playMode === 'league'
-                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25'
-                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    ? 'bg-white text-[var(--color-text)] shadow-sm'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                 }`}
               >
                 🏆 League
@@ -189,10 +189,10 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
               <button
                 type="button"
                 onClick={() => setPlayMode('rotational')}
-                className={`flex-1 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-1 inline-flex items-center justify-center px-4 py-3 rounded-lg text-sm font-medium transition-all min-h-[44px] ${
                   playMode === 'rotational'
-                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25'
-                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+                    ? 'bg-white text-[var(--color-text)] shadow-sm'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
                 }`}
               >
                 🔄 Rotational
@@ -201,18 +201,18 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-4 pt-4 border-t border-[var(--color-surface-light)]">
+          <div className="flex gap-4 pt-6 border-t border-[var(--color-border)]">
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-3.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[var(--color-primary)]/25 transition-all disabled:opacity-50 disabled:hover:shadow-none"
+              className="flex-1 inline-flex items-center justify-center px-6 py-3.5 bg-[var(--color-primary)] text-white font-semibold rounded-xl hover:bg-[var(--color-primary-dark)] transition-all disabled:opacity-50 disabled:cursor-not-allowed min-h-[52px]"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-8 py-3.5 bg-[var(--color-surface-light)] text-[var(--color-text)] font-semibold rounded-xl hover:bg-[var(--color-surface-light)]/80 transition-all"
+              className="inline-flex items-center justify-center px-8 py-3.5 bg-white text-[var(--color-text)] font-semibold rounded-xl border border-[var(--color-border-dark)] hover:bg-[var(--color-surface-secondary)] transition-all min-h-[52px]"
             >
               Cancel
             </button>
@@ -224,4 +224,3 @@ const RoomSettings = ({ booking, onSave, onClose }: RoomSettingsProps) => {
 };
 
 export default RoomSettings;
-

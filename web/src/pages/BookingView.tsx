@@ -37,7 +37,6 @@ const BookingView = () => {
   const [activeTab, setActiveTab] = useState<'players' | 'teams' | 'league' | 'rotational'>('players');
   const [showSettings, setShowSettings] = useState(false);
 
-  // Initial load - get booking by code
   useEffect(() => {
     const loadBooking = async () => {
       if (!code) return;
@@ -59,7 +58,6 @@ const BookingView = () => {
     loadBooking();
   }, [code]);
 
-  // Subscribe to real-time updates once we have the booking
   useEffect(() => {
     if (!booking?.id) return;
 
@@ -79,7 +77,6 @@ const BookingView = () => {
     };
   }, [booking?.id]);
 
-  // Calculate standings when matches or teams change
   useEffect(() => {
     if (teams.length > 0 && matches.length > 0) {
       setStandings(calculateLeagueStandings(teams, matches));
@@ -88,8 +85,6 @@ const BookingView = () => {
 
   const activePlayers = players.filter(p => p.status === 'active');
   const waitingPlayers = players.filter(p => p.status === 'waiting');
-  
-  // Check if current user is the owner of this booking
   const isOwner = booking ? booking.createdBy === firebaseUser?.uid : false;
 
   const handleAddPlayer = async (playerName: string, isGuest: boolean) => {
@@ -156,10 +151,7 @@ const BookingView = () => {
     if (!booking) return;
     
     try {
-      // Get all players including waiting if pulling from waiting list
-      const allPlayers = pullFromWaitingList 
-        ? players // players from subscribeToPlayers includes all statuses
-        : activePlayers;
+      const allPlayers = pullFromWaitingList ? players : activePlayers;
       await fullyRandomAllocate(booking.id, allPlayers, teams, booking.playersPerTeam, pullFromWaitingList);
     } catch (err) {
       console.error('Error allocating players:', err);
@@ -213,7 +205,6 @@ const BookingView = () => {
       if (data.playersPerTeam !== undefined) updateData.playersPerTeam = data.playersPerTeam;
       if (data.playMode !== undefined) updateData.playMode = data.playMode;
       
-      // Use the capacity-aware update function
       await updateBookingWithCapacityCheck(
         booking.id, 
         updateData as Partial<Booking>,
@@ -235,34 +226,50 @@ const BookingView = () => {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'open': return 'bg-[#e6f4ea] text-[var(--color-success)]';
+      case 'allocating': return 'bg-[#fef3e2] text-[var(--color-warning)]';
+      case 'in-progress': return 'bg-[var(--color-primary-bg)] text-[var(--color-primary)]';
+      default: return 'bg-[var(--color-surface-secondary)] text-[var(--color-text-secondary)]';
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center">
-        <div className="animate-pulse-slow text-[var(--color-primary)] text-xl">Loading booking...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="flex items-center gap-3 text-[var(--color-text-secondary)]">
+          <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+          Loading...
+        </div>
       </div>
     );
   }
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-[var(--color-background)] flex items-center justify-center px-4">
-        <div className="bg-[var(--color-surface)] rounded-2xl p-8 text-center max-w-md border border-[var(--color-surface-light)]">
-          <div className="text-5xl mb-4">❌</div>
+      <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#fce8e6] rounded-full mb-4">
+            <span className="text-3xl">❌</span>
+          </div>
           <h2 className="text-xl font-semibold text-[var(--color-text)] mb-2">
             {error || 'Booking Not Found'}
           </h2>
-          <p className="text-[var(--color-text-muted)] mb-6">
+          <p className="text-[var(--color-text-secondary)] mb-6">
             The booking code "{code}" doesn't exist or has been removed.
           </p>
           <Link
             to="/login"
-            className="inline-block px-6 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl hover:opacity-90 transition-opacity"
+            className="inline-block px-6 py-3 bg-[var(--color-primary)] text-white font-semibold rounded-xl hover:bg-[var(--color-primary-dark)] transition-all"
           >
             Go to Login
           </Link>
@@ -272,30 +279,33 @@ const BookingView = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-background)]">
+    <div className="min-h-screen bg-[#f7f7f7]">
       {/* Header */}
-      <header className="bg-[var(--color-surface)] border-b border-[var(--color-surface-light)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+      <header className="bg-white border-b border-[var(--color-border)]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
             <Link to="/dashboard" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] rounded-xl flex items-center justify-center">
-                <span className="text-white font-bold text-lg">⚽</span>
+              <div className="w-10 h-10 bg-[var(--color-primary)] rounded-xl flex items-center justify-center">
+                <span className="text-white text-lg">⚽</span>
               </div>
               <span className="text-xl font-bold text-[var(--color-text)]">7agz</span>
             </Link>
 
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-mono bg-[var(--color-background)] px-3 py-1 rounded-lg text-[var(--color-primary)]">
+            <div className="flex items-center gap-6">
+              <span className="font-mono text-sm font-bold text-[var(--color-primary)] bg-[var(--color-primary-bg)] px-4 py-2 rounded-lg tracking-wider">
                 {booking.code}
               </span>
               {firebaseUser ? (
-                <span className="text-[var(--color-text-muted)] text-sm">
-                  {userData?.displayName}
-                </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-sm font-semibold">
+                    {userData?.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                  <span className="text-sm text-[var(--color-text)] font-medium hidden sm:block">{userData?.displayName}</span>
+                </div>
               ) : (
                 <Link
                   to="/login"
-                  className="px-4 py-2 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity"
+                  className="inline-flex items-center justify-center !px-6 !py-3 bg-[var(--color-primary)] text-white text-sm font-semibold rounded-xl hover:bg-[var(--color-primary-dark)] transition-all min-h-[44px] min-w-[100px]"
                 >
                   Login
                 </Link>
@@ -307,49 +317,66 @@ const BookingView = () => {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Booking Info */}
-        <div className="bg-[var(--color-surface)] rounded-2xl p-6 border border-[var(--color-surface-light)] mb-8 animate-fade-in">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-[var(--color-text)] mb-2">
-                {booking.description || 'Football Match'}
-              </h1>
-              <div className="flex flex-wrap gap-4 text-sm text-[var(--color-text-muted)]">
-                <span className="flex items-center gap-1">📅 {formatDate(booking.playDate)}</span>
-                <span className="flex items-center gap-1">👥 {activePlayers.length}/{booking.acceptedCapacity} players</span>
-                <span className="flex items-center gap-1">🏆 {booking.numTeams} teams • {booking.playMode === 'league' ? 'League' : 'Rotational'}</span>
+        {/* Booking Info Card */}
+        <div className="bg-white rounded-2xl border border-[var(--color-border)] mb-8 overflow-hidden animate-fade-in">
+          <div className="h-1.5 bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)]" />
+          <div className="p-6">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-4 mb-4">
+                  <h1 className="text-2xl font-bold text-[var(--color-text)]">
+                    {booking.description || 'Football Match'}
+                  </h1>
+                  <span className={`text-xs px-3 py-1.5 rounded-full font-semibold capitalize ${getStatusBadge(booking.status)}`}>
+                    {booking.status.replace('-', ' ')}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-6 text-sm text-[var(--color-text-secondary)]">
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {formatDate(booking.playDate)}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {activePlayers.length}/{booking.acceptedCapacity} players
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-[var(--color-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    {booking.numTeams} teams · {booking.playMode === 'league' ? 'League' : 'Rotational'}
+                  </span>
+                </div>
+                {booking.locationUrl && (
+                  <a
+                    href={booking.locationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center gap-2 text-[var(--color-primary)] hover:underline text-sm font-medium"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    View Location
+                  </a>
+                )}
               </div>
-              {booking.locationUrl && (
-                <a
-                  href={booking.locationUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-[var(--color-accent)] hover:underline text-sm"
-                >
-                  📍 View Location
-                </a>
-              )}
-            </div>
 
-            <div className="flex items-center gap-3">
-              <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
-                booking.status === 'open' ? 'bg-[var(--color-success)]/15 text-[var(--color-success)] border border-[var(--color-success)]/30' :
-                booking.status === 'allocating' ? 'bg-[var(--color-warning)]/15 text-[var(--color-warning)] border border-[var(--color-warning)]/30' :
-                booking.status === 'in-progress' ? 'bg-[var(--color-primary)]/15 text-[var(--color-primary)] border border-[var(--color-primary)]/30' :
-                'bg-[var(--color-text-muted)]/15 text-[var(--color-text-muted)] border border-[var(--color-text-muted)]/30'
-              }`}>
-                {booking.status}
-              </span>
               {isOwner && (
                 <button
                   onClick={() => setShowSettings(true)}
-                  className="p-2.5 text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-light)] rounded-lg transition-all"
-                  title="Room Settings"
+                  className="flex items-center gap-2 px-4 py-2.5 text-[var(--color-text-secondary)] hover:text-[var(--color-text)] bg-[var(--color-surface-secondary)] hover:bg-[var(--color-border)] rounded-xl transition-all text-sm font-medium"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
+                  Settings
                 </button>
               )}
             </div>
@@ -357,67 +384,66 @@ const BookingView = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveTab('players')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              activeTab === 'players'
-                ? 'bg-[var(--color-primary)] text-white'
-                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-            }`}
-          >
-            Players ({players.length})
-          </button>
-          <button
-            onClick={() => setActiveTab('teams')}
-            className={`px-4 py-2 rounded-lg font-medium transition-all ${
-              activeTab === 'teams'
-                ? 'bg-[var(--color-primary)] text-white'
-                : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
-            }`}
-          >
-            Teams ({teams.length})
-          </button>
-          {booking.playMode === 'league' && (
+        <div className="border-b border-[var(--color-border)] mb-8">
+          <div className="flex gap-8">
             <button
-              onClick={() => setActiveTab('league')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'league'
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+              onClick={() => setActiveTab('players')}
+              className={`pb-4 text-sm font-medium transition-all border-b-2 -mb-px ${
+                activeTab === 'players'
+                  ? 'border-[var(--color-text)] text-[var(--color-text)]'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
               }`}
             >
-              League
+              Players ({players.length})
             </button>
-          )}
-          {booking.playMode === 'rotational' && (
             <button
-              onClick={() => setActiveTab('rotational')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === 'rotational'
-                  ? 'bg-[var(--color-primary)] text-white'
-                  : 'bg-[var(--color-surface)] text-[var(--color-text-muted)] hover:text-[var(--color-text)]'
+              onClick={() => setActiveTab('teams')}
+              className={`pb-4 text-sm font-medium transition-all border-b-2 -mb-px ${
+                activeTab === 'teams'
+                  ? 'border-[var(--color-text)] text-[var(--color-text)]'
+                  : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
               }`}
             >
-              Rotation
+              Teams ({teams.length})
             </button>
-          )}
+            {booking.playMode === 'league' && (
+              <button
+                onClick={() => setActiveTab('league')}
+                className={`pb-4 text-sm font-medium transition-all border-b-2 -mb-px ${
+                  activeTab === 'league'
+                    ? 'border-[var(--color-text)] text-[var(--color-text)]'
+                    : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
+                }`}
+              >
+                League
+              </button>
+            )}
+            {booking.playMode === 'rotational' && (
+              <button
+                onClick={() => setActiveTab('rotational')}
+                className={`pb-4 text-sm font-medium transition-all border-b-2 -mb-px ${
+                  activeTab === 'rotational'
+                    ? 'border-[var(--color-text)] text-[var(--color-text)]'
+                    : 'border-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
+                }`}
+              >
+                Rotation
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Content */}
         {activeTab === 'players' && (
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Add Player Form */}
-            <div className="lg:col-span-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="min-w-0">
               <AddPlayerForm
                 onAddPlayer={handleAddPlayer}
                 isLoggedIn={!!firebaseUser}
                 userName={userData?.displayName}
               />
             </div>
-
-            {/* Active Players */}
-            <div className="lg:col-span-1">
+            <div className="min-w-0">
               <BookingList
                 players={activePlayers}
                 capacity={booking.acceptedCapacity}
@@ -426,9 +452,7 @@ const BookingView = () => {
                 canRemove={(player) => canRemovePlayer(player, firebaseUser?.uid || null) || isOwner}
               />
             </div>
-
-            {/* Waiting List */}
-            <div className="lg:col-span-1">
+            <div className="min-w-0">
               <WaitingList
                 players={waitingPlayers}
                 currentUserId={firebaseUser?.uid || null}
@@ -465,7 +489,7 @@ const BookingView = () => {
         )}
 
         {activeTab === 'league' && booking.playMode === 'league' && (
-          <div className="grid gap-6 lg:grid-cols-2">
+          <div className="grid gap-8 lg:grid-cols-2">
             <LeagueTable standings={standings} />
             <MatchSchedule
               matches={matches}
@@ -498,4 +522,3 @@ const BookingView = () => {
 };
 
 export default BookingView;
-

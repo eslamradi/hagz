@@ -14,66 +14,71 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="min-h-screen bg-[var(--color-background)]">
-      {/* Header */}
-      <header className="bg-[var(--color-surface)] border-b border-[var(--color-surface-light)] sticky top-0 z-50 backdrop-blur-sm bg-opacity-95">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="flex justify-between items-center h-18 py-4">
+      {/* Header - Clean Airbnb-style */}
+      <header className="bg-white border-b border-[var(--color-border)] sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <Link to="/dashboard" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-accent)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-primary)]/10 group-hover:shadow-[var(--color-primary)]/20 transition-shadow">
-                <span className="text-white font-bold text-lg">⚽</span>
+              <div className="w-11 h-11 bg-[var(--color-primary)] rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
+                <span className="text-white text-xl">⚽</span>
               </div>
-              <span className="text-xl font-bold text-[var(--color-text)]">7agz</span>
+              <span className="text-[22px] font-bold text-[var(--color-text)] tracking-tight">7agz</span>
             </Link>
 
-            {/* Navigation */}
-            <nav className="flex items-center gap-2">
-              <Link
-                to="/dashboard"
-                className={`px-5 py-2.5 rounded-xl transition-all font-medium ${
-                  isActive('/dashboard')
-                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25'
-                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-light)]'
-                }`}
-              >
-                Browse
-              </Link>
-              
-              <Link
-                to="/my-bookings"
-                className={`px-5 py-2.5 rounded-xl transition-all font-medium ${
-                  isActive('/my-bookings')
-                    ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/25'
-                    : 'text-[var(--color-text-muted)] hover:text-[var(--color-text)] hover:bg-[var(--color-surface-light)]'
-                }`}
-              >
-                My Rooms
-              </Link>
-
-              {/* User menu */}
-              <div className="flex items-center gap-4 ml-4 pl-4 border-l border-[var(--color-surface-light)]">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--color-primary)] to-[var(--color-primary-dark)] flex items-center justify-center text-white text-sm font-semibold">
-                    {userData?.displayName?.charAt(0)?.toUpperCase() || 'U'}
-                  </div>
-                  <span className="text-[var(--color-text)] text-sm font-medium hidden sm:block">
-                    {userData?.displayName}
-                  </span>
-                </div>
-                <button
-                  onClick={signOut}
-                  className="px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-error)] hover:bg-[var(--color-error)]/10 rounded-lg transition-all"
+            {/* Navigation - Pill style */}
+            <nav className="hidden md:flex items-center">
+              <div className="flex items-center bg-[var(--color-surface-secondary)] rounded-full p-1">
+                <Link
+                  to="/dashboard"
+                  className={`inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-medium transition-all min-h-[40px] ${
+                    isActive('/dashboard')
+                      ? 'bg-white text-[var(--color-text)] shadow-sm'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
+                  }`}
                 >
-                  Sign Out
-                </button>
+                  Browse Rooms
+                </Link>
+                
+                <Link
+                  to="/my-bookings"
+                  className={`inline-flex items-center justify-center px-5 py-2.5 rounded-full text-sm font-medium transition-all min-h-[40px] ${
+                    isActive('/my-bookings')
+                      ? 'bg-white text-[var(--color-text)] shadow-sm'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'
+                  }`}
+                >
+                  My Rooms
+                </Link>
               </div>
             </nav>
+
+            {/* User menu */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 pl-3 pr-4 py-2 border border-[var(--color-border)] rounded-full hover:shadow-md transition-shadow cursor-pointer">
+                <div className="w-8 h-8 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white text-sm font-semibold">
+                  {userData?.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <span className="text-[var(--color-text)] text-sm font-medium hidden sm:block max-w-[120px] truncate">
+                  {userData?.displayName}
+                </span>
+              </div>
+              <button
+                onClick={signOut}
+                className="p-2.5 text-[var(--color-text-secondary)] hover:text-[var(--color-error)] hover:bg-[var(--color-surface-secondary)] rounded-full transition-all"
+                title="Sign Out"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-6xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-8">
         {children}
       </main>
     </div>

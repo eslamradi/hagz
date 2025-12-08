@@ -197,31 +197,21 @@ export const removePlayerFromBooking = async (
   
   if (!playerSnap.exists()) return;
   
-  const removedPlayer = playerSnap.data() as Player;
-  const wasActive = removedPlayer.status === 'active';
+  // Get booking to know capacity
+  const booking = await getBookingById(bookingId);
+  if (!booking) throw new Error('Booking not found');
   
   // Delete the player
   await deleteDoc(playerRef);
   
-  // If removed player was active, promote first waiting player
-  if (wasActive) {
-    const playersRef = collection(db, 'bookings', bookingId, 'players');
-    const q = query(
-      playersRef,
-      where('status', '==', 'waiting'),
-      orderBy('position', 'asc')
-    );
-    
-    const waitingSnapshot = await getDocs(q);
-    
-    if (!waitingSnapshot.empty) {
-      const firstWaiting = waitingSnapshot.docs[0];
-      await updateDoc(firstWaiting.ref, { status: 'active' });
-    }
-  }
+  // Recalculate positions and statuses based on capacity
+  // This will automatically promote waiting players and update all positions
+  // Calculate effective capacity (min of acceptedCapacity and total team spots)
+  const totalSpots = booking.numTeams * booking.playersPerTeam;
+  const effectiveCapacity = Math.min(booking.acceptedCapacity, totalSpots);
   
-  // Recalculate positions
-  await recalculatePositions(bookingId);
+  // This function updates both positions and statuses in one batch
+  await recalculatePlayerStatuses(bookingId, effectiveCapacity);
 };
 
 // Recalculate positions after removal
@@ -283,51 +273,80 @@ export const recalculatePlayerStatuses = async (
   bookingId: string,
   newCapacity: number
 ): Promise<void> => {
-  console.log('[recalculatePlayerStatuses] Starting with capacity:', newCapacity);
-  
-  const playersRef = collection(db, 'bookings', bookingId, 'players');
-  
-  // Get all players ordered by when they signed up (addedAt)
-  // This ensures positions accurately reflect signup order
-  const q = query(playersRef, orderBy('addedAt', 'asc'));
-  const snapshot = await getDocs(q);
-  
-  console.log('[recalculatePlayerStatuses] Found', snapshot.size, 'players');
-  
-  if (snapshot.empty) return;
-  
-  const batch = writeBatch(db);
-  const changes: Array<{name: string, oldStatus: string, newStatus: string, position: number}> = [];
-  
-  // Assign positions and statuses based on signup order
-  // Position 1 = first to sign up = highest rank = stays active longest
-  // Position N = last to sign up = lowest rank = first to go to waiting when downsizing
-  snapshot.docs.forEach((playerDoc, index) => {
-    const position = index + 1;
-    const shouldBeActive = position <= newCapacity;
-    const newStatus = shouldBeActive ? 'active' : 'waiting';
-    const currentData = playerDoc.data();
+  try {
+    console.log('[recalculatePlayerStatuses] Starting with capacity:', newCapacity);
     
-    // Always update position and status
-    batch.update(playerDoc.ref, { 
-      position,
-      status: newStatus 
+    const playersRef = collection(db, 'bookings', bookingId, 'players');
+    
+    // Get all players - we'll sort by addedAt in memory to avoid index issues
+    const snapshot = await getDocs(playersRef);
+    
+    console.log('[recalculatePlayerStatuses] Found', snapshot.size, 'players');
+    
+    if (snapshot.empty) {
+      console.log('[recalculatePlayerStatuses] No players found, exiting');
+      return;
+    }
+    
+    // Sort players by addedAt timestamp (handle missing addedAt by putting them last)
+    const players = snapshot.docs.map(doc => ({
+      ref: doc.ref,
+      data: doc.data(),
+      addedAt: doc.data().addedAt || null
+    }));
+    
+    players.sort((a, b) => {
+      // If both have addedAt, compare them
+      if (a.addedAt && b.addedAt) {
+        const aTime = a.addedAt.toMillis ? a.addedAt.toMillis() : a.addedAt;
+        const bTime = b.addedAt.toMillis ? b.addedAt.toMillis() : b.addedAt;
+        return aTime - bTime;
+      }
+      // If only one has addedAt, it comes first
+      if (a.addedAt && !b.addedAt) return -1;
+      if (!a.addedAt && b.addedAt) return 1;
+      // If neither has addedAt, maintain current order
+      return 0;
     });
     
-    if (currentData.status !== newStatus) {
-      changes.push({
-        name: currentData.playerName,
-        oldStatus: currentData.status,
-        newStatus,
-        position
+    const batch = writeBatch(db);
+    const changes: Array<{name: string, oldStatus: string, newStatus: string, position: number}> = [];
+    
+    // Assign positions and statuses based on signup order
+    // Position 1 = first to sign up = highest rank = stays active longest
+    // Position N = last to sign up = lowest rank = first to go to waiting when downsizing
+    players.forEach((player, index) => {
+      const position = index + 1;
+      const shouldBeActive = position <= newCapacity;
+      const newStatus = shouldBeActive ? 'active' : 'waiting';
+      const currentData = player.data;
+      const oldStatus = currentData.status || 'waiting';
+      
+      // Always update position and status
+      batch.update(player.ref, { 
+        position,
+        status: newStatus 
       });
-    }
-  });
-  
-  console.log('[recalculatePlayerStatuses] Status changes:', changes);
-  
-  await batch.commit();
-  console.log('[recalculatePlayerStatuses] Batch committed successfully');
+      
+      if (oldStatus !== newStatus) {
+        changes.push({
+          name: currentData.playerName || 'Unknown',
+          oldStatus,
+          newStatus,
+          position
+        });
+      }
+    });
+    
+    console.log('[recalculatePlayerStatuses] Status changes:', changes);
+    console.log('[recalculatePlayerStatuses] Committing batch with', players.length, 'updates');
+    
+    await batch.commit();
+    console.log('[recalculatePlayerStatuses] Batch committed successfully');
+  } catch (error) {
+    console.error('[recalculatePlayerStatuses] Error:', error);
+    throw error;
+  }
 };
 
 // Update booking and recalculate statuses if capacity or team settings changed
