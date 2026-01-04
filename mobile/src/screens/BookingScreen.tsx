@@ -308,7 +308,11 @@ const BookingScreen = () => {
         {activePlayers.length === 0 ? (
           <Text style={styles.emptyText}>No players yet. Be the first to join!</Text>
         ) : (
-          activePlayers.map((player, index) => renderPlayer({ item: player, index }))
+          activePlayers.map((player, index) => (
+            <React.Fragment key={player.id}>
+              {renderPlayer({ item: player, index })}
+            </React.Fragment>
+          ))
         )}
       </View>
 
@@ -322,7 +326,11 @@ const BookingScreen = () => {
             </View>
           </View>
           
-          {waitingPlayers.map((player, index) => renderPlayer({ item: player, index }))}
+          {waitingPlayers.map((player, index) => (
+            <React.Fragment key={player.id}>
+              {renderPlayer({ item: player, index })}
+            </React.Fragment>
+          ))}
         </View>
       )}
 
@@ -586,6 +594,7 @@ const styles = StyleSheet.create({
 });
 
 export default BookingScreen;
+
 
 
 

@@ -7,7 +7,8 @@ import {
   StyleSheet,
   TextInput,
   Alert,
-  RefreshControl
+  RefreshControl,
+  Platform
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -335,6 +336,7 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
+
 
 
 
