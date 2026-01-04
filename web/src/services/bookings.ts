@@ -214,20 +214,6 @@ export const removePlayerFromBooking = async (
   await recalculatePlayerStatuses(bookingId, effectiveCapacity);
 };
 
-// Recalculate positions after removal
-const recalculatePositions = async (bookingId: string): Promise<void> => {
-  const playersRef = collection(db, 'bookings', bookingId, 'players');
-  const q = query(playersRef, orderBy('addedAt', 'asc'));
-  const snapshot = await getDocs(q);
-  
-  const batch = writeBatch(db);
-  snapshot.docs.forEach((doc, index) => {
-    batch.update(doc.ref, { position: index + 1 });
-  });
-  
-  await batch.commit();
-};
-
 // Get players for a booking
 export const getPlayersForBooking = async (bookingId: string): Promise<Player[]> => {
   const playersRef = collection(db, 'bookings', bookingId, 'players');
