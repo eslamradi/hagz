@@ -66,7 +66,7 @@ function AppRoutes() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/hagz">
       <AuthProvider>
         <AppRoutes />
       </AuthProvider>
