@@ -81,7 +81,9 @@ const MyRooms = () => {
   };
 
   const copyLink = (code: string) => {
-    const url = `${window.location.origin}/booking/${code}`;
+    // Extract base path from current location (e.g., /hagz from /hagz/my-bookings)
+    const basePath = window.location.pathname.split('/').slice(0, 2).join('/') || '/hagz';
+    const url = `${window.location.origin}${basePath}/booking/${code}`;
     navigator.clipboard.writeText(url);
     alert('Link copied to clipboard!');
   };
